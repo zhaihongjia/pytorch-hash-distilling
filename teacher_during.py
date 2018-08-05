@@ -1,4 +1,4 @@
-#-------------------------------
+#------------eeee-------------------
 from net.Resnet import Resnet18PlusLatent
 from net.Squeezenet import SqueezenetPlusLatent
 from utils import trainloader,testloader
