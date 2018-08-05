@@ -5,11 +5,7 @@ from torchvision import models
 
 resnet18=models.resnet18()
 resnet18.fc = nn.Linear(in_features = 512, out_features = 10)
-resnet18.load_state_dict(torch.load("/home/zhj/distilling/mol/models/resnet18/epoch115_9459_resnet18.pkl"))
-# resnet50=models.resnet50()
-# resnet50.fc = nn.Linear(in_features = 2048, out_features = 10)
-#resnet50.load_state_dict(torch.load(""))
-
+resnet18.load_state_dict(torch.load("./models/resnet18/epoch115_9459_resnet18.pkl"))
 
 class Resnet18PlusLatent(nn.Module):
     def __init__(self,bits):
@@ -40,15 +36,15 @@ class Resnet18PlusLatent(nn.Module):
         return former,features,latter,result
 
 
-class Resnet50PlusLatent(nn.Module):
-    def __init__(self,bits):
-        super(Resnet50PlusLatent,self).__init__()
-        self.bits=bits
-        self.Linear1=nn.Linear(10, self.bits)
-        self.sigmoid = nn.Sigmoid()
-        self.Linear2=nn.Linear(self.bits, 10)
-    def forward(self,x):
-        former=resnet50(x)
-        features=self.sigmoid(self.Linear1(former))
-        result=self.Linear2(features)
-        return former,features,result
+# class Resnet50PlusLatent(nn.Module):
+#     def __init__(self,bits):
+#         super(Resnet50PlusLatent,self).__init__()
+#         self.bits=bits
+#         self.Linear1=nn.Linear(10, self.bits)
+#         self.sigmoid = nn.Sigmoid()
+#         self.Linear2=nn.Linear(self.bits, 10)
+#     def forward(self,x):
+#         former=resnet50(x)
+#         features=self.sigmoid(self.Linear1(former))
+#         result=self.Linear2(features)
+#         return former,features,result

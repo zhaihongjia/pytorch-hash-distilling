@@ -12,9 +12,12 @@ from net.Resnet import Resnet18PlusLatent
 from net.Squeezenet import SqueezenetPlusLatent
 from utils import trainloader,testloader
 
+#-----------change bits to:12 24 36 48---------------------------
+bits=48
+#----------------------------------------------------------------
+
 EPOCH=50000
 LR=0.01
-bits=48
 
 #------------------load models---------------------------------
 student=SqueezenetPlusLatent(bits)
@@ -33,9 +36,6 @@ loss_mse=nn.MSELoss().cuda()
 optimer=optim.SGD(student.parameters(),lr=LR,momentum=0.9)
 scheduler=optim.lr_scheduler.StepLR(optimer,step_size=40,gamma=0.1)
 
-#----------------------load teacher data---------------------------
-train_binary1 = torch.load('./thash/train_binary1')
-train_binary2 = torch.load('./thash/train_binary2')
 
 #-----------------for train and test-----------------------------
 for i in torch.arange(8001,EPOCH+1):
@@ -44,15 +44,10 @@ for i in torch.arange(8001,EPOCH+1):
     train_loss=0.0
     correct=0
     total=0
-    f=0
-    l=0
     for inputs,labels in trainloader:
         inputs,labels=Variable(inputs.cuda()),Variable(labels.cuda())
         l=l+labels.size()[0]
         outputs1,_,outputs2,result=student(inputs)
-        t_out22=train_binary2[f:l]
-        t_out11=train_binary1[f:l]
-        f=l
         #t_out1,_,t_out2,t_result=teacher(inputs)
         #t_out22=t_out2.detach()
         #t_out11=t_out1.detach()
@@ -92,4 +87,4 @@ for i in torch.arange(8001,EPOCH+1):
 
     if i%200==0:
         print("Saving model-------------------------!")
-        torch.save(student.state_dict(),"./models/student/adam_mse_epoch{}_{}.pkl".format(i,correct))
+        torch.save(student.state_dict(),"./models/student/S_bit{}_epoch{}_{}.pkl".format(bits,i,correct))
