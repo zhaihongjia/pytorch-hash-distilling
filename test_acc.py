@@ -10,11 +10,12 @@ from net.Squeezenet import SqueezenetPlusLatent
 from utils import trainloader,testloader
 
 #---------------load test model------------------
-bits=48
-modelpath="./models/teacher/"
+bits=12
+modelpath="./models/teacher/T_bit12_epoch121.0_9126.pkl"
 #-------teacher model----------------------------
 net=Resnet18PlusLatent(bits)
 net.load_state_dict(torch.load(modelpath))
+net.cuda()
 net.eval()
 #------------------------------------------------
 
@@ -33,7 +34,7 @@ total=0
 for t_in,t_labels in testloader:
     t_in,t_labels=Variable(t_in.cuda()),Variable(t_labels.cuda())
     _,_,_,t_result=net(t_in)
-    t_prediction=torch.max(t_result.data,1)[1]
+    t_predict=torch.max(t_result.data,1)[1]
     total+=t_labels.size()[0]
-    correct+=(predict==labels).sum()
+    correct+=(t_predict==t_labels).sum()
 print("test: total:{}  correct:{}".format(total,correct))
