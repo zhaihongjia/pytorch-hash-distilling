@@ -13,11 +13,11 @@ from net.Squeezenet import SqueezenetPlusLatent
 from utils import trainloader,testloader
 
 #-----------change bits to:12 24 36 48---------------------------
-bits=48
+bits=12
 #----------------------------------------------------------------
 
 EPOCH=10000
-LR=0.01
+LR=0.005
 
 #------------------load models---------------------------------
 student=SqueezenetPlusLatent(bits)
@@ -44,12 +44,9 @@ for i in torch.arange(0,EPOCH+1):
     scheduler.step()
 
     train_loss=0.0
-    correct=0
-    total=0
     for inputs,labels in trainloader:
         inputs,labels=Variable(inputs.cuda()),Variable(labels.cuda())
-        l=l+labels.size()[0]
-        _,outputs,_,_=student(inputs)
+        _,outputs,_,result=student(inputs)
         _,t_out,_,_=teacher(inputs)
         t_out=t_out.detach()
         #-------------------------------------------------------
@@ -70,22 +67,10 @@ for i in torch.arange(0,EPOCH+1):
         loss.backward()
         optimer.step()
         train_loss+=loss.data
-        predict=torch.max(result.data,1)[1]
-        total+=labels.size()[0]
-        correct+=(predict==labels).sum()
-    print("epoch:{}  loss:{}  total:{}  correct:{}".format(i,train_loss,total,correct))
 
-    #---------------test-----------
-    total=0
-    correct=0
-    for t_inputs,t_labels in testloader:
-        t_inputs,t_labels=Variable(t_inputs.cuda()),Variable(t_labels.cuda())
-        _,_,_,test_result=student(t_inputs)
-        _,t_predict=torch.max(test_result.data,1)
-        total+=t_labels.size(0)
-        correct+=(t_predict==t_labels).sum()
-    print("test:  total:{}  correct:{}".format(total,correct))
+    print("epoch:{}  loss:{}".format(i,train_loss))
+
 
     if i%20==0:
         print("Saving model-------------------------!")
-        torch.save(student.state_dict(),"./models/student/3{}/S_bit{}_epoch{}_{}.pkl".format(bits,bits,i,correct))
+        torch.save(student.state_dict(),"./models/student/2{}/S_bit{}_epoch{}_{}.pkl".format(bits,bits,i))

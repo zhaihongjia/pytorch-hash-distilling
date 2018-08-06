@@ -58,7 +58,7 @@ def precision(trn_binary, trn_label, tst_binary, tst_label):
         AP[i] = np.sum(P * buffer_yes) /sum(buffer_yes)
 
     map = np.mean(AP)
-    file1.write("map:"+str(map)+"\n")
+    file1.write("     map: "+str(map)+"\n")
     print("map",map)
     print('total query time = ', time.time() - total_time_start)
 
