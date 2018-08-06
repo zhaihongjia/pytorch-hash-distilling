@@ -64,12 +64,12 @@ def precision(trn_binary, trn_label, tst_binary, tst_label):
 
 bits=12
 #-------get the model name in the target directory and load model---------------------
-target_root="./models/teacher/"
+target_root="./models/student/112/"
 models=os.listdir(target_root)
 modelspath=[os.path.join(target_root,model) for model in models if model.endswith("pkl")]
 for modelpath in modelspath:
-    net=Resnet18PlusLatent(bits)
-    #net=SqueezenetPlusLatent(bits)
+    #net=Resnet18PlusLatent(bits)
+    net=SqueezenetPlusLatent(bits)
     net.load_state_dict(torch.load(modelpath))
 
     #---------compute map-------------------
