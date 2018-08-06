@@ -8,13 +8,7 @@ import os,time
 import torch
 from torch.autograd import Variable
 
-def binary_output(dataloader):
-    #net=models.resnet18()
-    #net = Resnet18PlusLatent(48)
-    #net.load_state_dict(torch.load('./models/teacher/acc_epoch125.0_9740.pkl'))
-    net=SqueezenetPlusLatent(48)
-    net.load_state_dict(torch.load("./models/fixstudent/acc_epoch4000.0_8378.pkl"))
-    #print(net)
+def binary_output(dataloader,net):
     use_cuda = torch.cuda.is_available()
     if use_cuda:
         net.cuda()
@@ -68,23 +62,41 @@ def precision(trn_binary, trn_label, tst_binary, tst_label):
     print('total query time = ', time.time() - total_time_start)
 
 
+bits=12
+#-------get the model name in the target directory and load model---------------------
+target_root="./models/teacher/"
+models=os.listdir(target_root)
+modelspath=[os.path.join(root,model) for model in models if model.endswith("pkl")]
+for modelpath in modelspath:
+    net=Resnet18PlusLatent(bits)
+    #net=SqueezenetPlusLatent(bits)
+    net.load_state_dict(torch.load(modelpath))
 
-if os.path.exists('./hash/train_binary') and os.path.exists('./hash/train_label') and \
-   os.path.exists('./hash/test_binary') and os.path.exists('./hash/test_label') and False:
-    train_binary = torch.load('./hash/train_binary')
-    train_label = torch.load('./hash/train_label')
-    test_binary = torch.load('./hash/test_binary')
-    test_label = torch.load('./hash/test_label')
+    #---------compute map-------------------
+    train_binary, train_label = binary_output(trainloader,net)
+    test_binary, test_label = binary_output(testloader,net)
+    print(modelpath)
+    precision(train_binary, train_label, test_binary, test_label)
 
-else:
-    print("compute hash!-----------------------------------------------")
-    train_binary, train_label = binary_output(trainloader)
-    test_binary, test_label = binary_output(testloader)
-    if not os.path.isdir('hash'):
-        os.mkdir('hash')
-    torch.save(train_binary, './hash/train_binary')
-    torch.save(train_label, './hash/train_label')
-    torch.save(test_binary, './hash/test_binary')
-    torch.save(test_label, './hash/test_label')
 
-precision(train_binary, train_label, test_binary, test_label)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#----------
