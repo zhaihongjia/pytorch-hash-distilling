@@ -6,15 +6,16 @@ from torch.autograd import Variable
 from net.Resnet import Resnet18PlusLatent
 from utils import trainloader,testloader
 
-bits=48
+#-----------change bits to:12 24 36 48---------------------------
+bits=12
+#----------------------------------------------------------------
 MOMENTUM=0.9
-LR=0.0005
-EPOCH=10000
+LR=0.0001
+EPOCH=80000
+
 #------------------load data-----------------------
-
-
 model=Resnet18PlusLatent(bits)
-model.load_state_dict(torch.load('./models/teacher/epoch12.0_9871.pkl'))
+model.load_state_dict(torch.load('./models/teacher/T_bit12_epoch7.0_8394.pkl'))
 model.cuda()
 loss_function=nn.CrossEntropyLoss().cuda()
 optimer=torch.optim.SGD(model.parameters(),lr=LR, momentum=MOMENTUM, weight_decay=0.0005)
@@ -22,7 +23,7 @@ scheduler = torch.optim.lr_scheduler.MultiStepLR(optimer, milestones=[40], gamma
 
 #------------------train --------------------------
 best=0
-for i in torch.arange(1,EPOCH+1):
+for i in torch.arange(8,EPOCH+1):
     model.train()
     train_loss=0.0
     total=0
@@ -51,7 +52,7 @@ for i in torch.arange(1,EPOCH+1):
         total+=t_labels.size(0)
         correct+=(t_predict==t_labels).sum()
     print("Test: total:{}  correct:{}".format(total,correct))
-    if correct>best or i%5==0:
+    if correct>best or i%1==0:
         best=correct
         print("Saving model-------------------------!")
-        torch.save(model.state_dict(),"./models/teacher/acc_epoch{}_{}.pkl".format(i,correct))
+        torch.save(model.state_dict(),"./models/teacher/T_bit{}_epoch{}_{}.pkl".format(bits,i,correct))

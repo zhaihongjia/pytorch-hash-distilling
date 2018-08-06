@@ -5,7 +5,7 @@ from torchvision import models
 
 resnet18=models.resnet18()
 resnet18.fc = nn.Linear(in_features = 512, out_features = 10)
-resnet18.load_state_dict(torch.load("./models/resnet18/epoch115_9459_resnet18.pkl"))
+resnet18.load_state_dict(torch.load("./models/resnet18/pre_resnet18.pkl"))
 
 class Resnet18PlusLatent(nn.Module):
     def __init__(self,bits):
