@@ -15,7 +15,6 @@ EPOCH=80000
 
 #-------------------------------------------------
 model=Resnet18PlusLatent(bits)
-# model.load_state_dict(torch.load('./models/teacher/epoch12.0_9871.pkl'))
 model.cuda()
 loss_function=nn.CrossEntropyLoss().cuda()
 optimer=torch.optim.SGD(model.parameters(),lr=LR, momentum=MOMENTUM, weight_decay=0.0005)

@@ -88,11 +88,3 @@ else:
     torch.save(test_label, './hash/test_label')
 
 precision(train_binary, train_label, test_binary, test_label)
-
-
-# net=models.resnet18()
-# net1=Resnet18PlusLatent(48)
-#
-# print(net)
-# print(net1)
-
