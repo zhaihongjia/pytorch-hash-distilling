@@ -66,7 +66,7 @@ bits=12
 #-------get the model name in the target directory and load model---------------------
 target_root="./models/teacher/"
 models=os.listdir(target_root)
-modelspath=[os.path.join(root,model) for model in models if model.endswith("pkl")]
+modelspath=[os.path.join(target_root,model) for model in models if model.endswith("pkl")]
 for modelpath in modelspath:
     net=Resnet18PlusLatent(bits)
     #net=SqueezenetPlusLatent(bits)
