@@ -16,7 +16,7 @@ from utils import trainloader,testloader
 bits=12
 #----------------------------------------------------------------
 
-EPOCH=10000
+EPOCH=8000
 LR=0.005
 
 #------------------load models---------------------------------
@@ -49,17 +49,7 @@ for i in torch.arange(0,EPOCH+1):
         _,outputs,_,result=student(inputs)
         _,t_out,_,_=teacher(inputs)
         t_out=t_out.detach()
-        #-------------------------------------------------------
-        #t_out22=torch.round(torch.clamp(t_out22,min=0))
-        #t_out11=torch.round(torch.clamp(t_out11,min=0))
-        #t_out11=t_out11.type(torch.cuda.LongTensor)[1]
-        #t_out22=t_out22.type(torch.cuda.LongTensor)[1]
-        #loss=loss_ce(result,labels)
 
-        #--------MSELoss---without distilling---
-        #print('outp',outputs2)
-        #print('tout',t_out22)
-        #print('loss.data',loss.data)
         loss=loss_mse(outputs,t_out)
         #loss=loss_ce(outputs2,t_out22)+loss_ce(outputs1,t_out11)
 
