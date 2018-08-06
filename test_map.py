@@ -58,7 +58,7 @@ def precision(trn_binary, trn_label, tst_binary, tst_label):
         AP[i] = np.sum(P * buffer_yes) /sum(buffer_yes)
 
     map = np.mean(AP)
-    file.write(map)
+    file1.write("map:"+str(map)+"\n")
     print("map",map)
     print('total query time = ', time.time() - total_time_start)
 
@@ -67,7 +67,7 @@ bits=12
 #-------get the model name in the target directory and load model---------------------
 target_root="./models/student/112/"
 filename=target_root+"map.txt"
-file=open(filename,"w")
+file1=open(filename,"w",newline="\n")
 models=os.listdir(target_root)
 modelspath=[os.path.join(target_root,model) for model in models if model.endswith("pkl")]
 for modelpath in modelspath:
@@ -78,11 +78,11 @@ for modelpath in modelspath:
     #---------compute map-------------------
     train_binary, train_label = binary_output(trainloader,net)
     test_binary, test_label = binary_output(testloader,net)
-    file.write(modelpath)
+    file1.write(modelpath)
+    file1.flush()
     print(modelpath)
     precision(train_binary, train_label, test_binary, test_label)
-
-
+file1.close()
 
 
 
