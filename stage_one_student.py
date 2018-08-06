@@ -9,14 +9,14 @@ from net.Resnet import Resnet18PlusLatent
 from net.Squeezenet import SqueezenetPlusLatent
 from utils import trainloader,testloader
 
-EPOCH=50000
-LR=0.01
+EPOCH=8000
+LR=0.0001
 #-----------change bits to:12 24 36 48---------------------------
 bits=12
 #----------------------------------------------------------------
 #------------------load models---------------------------------
 student=SqueezenetPlusLatent(bits)
-#student.load_state_dict(torch.load("./models/fixstudent/acc_epoch3000.0_8368.pkl"))
+student.load_state_dict(torch.load("./models/student/112/acc_epoch1000.0_8146.pkl"))
 student.cuda()
 student.train(True)
 
@@ -27,7 +27,7 @@ optimer=optim.SGD(student.parameters(),lr=LR,momentum=0.9)
 scheduler=optim.lr_scheduler.StepLR(optimer,step_size=40,gamma=0.1)
 
 #-----------------for train and test-----------------------------
-for i in torch.arange(0,EPOCH+1):
+for i in torch.arange(1001,EPOCH+1):
     scheduler.step()
 
     train_loss=0.0
@@ -40,6 +40,8 @@ for i in torch.arange(0,EPOCH+1):
 
         optimer.zero_grad()
         loss.backward()
+        #for n,p in student.named_parameters():
+         #   print(n,p.grad)
         optimer.step()
         train_loss+=loss.data
         predict=torch.max(result.data,1)[1]
@@ -58,6 +60,6 @@ for i in torch.arange(0,EPOCH+1):
         correct+=(t_predict==t_labels).sum()
     print("test:  total:{}  correct:{}".format(total,correct))
 
-    if i%10==0:
+    if i%200==0:
         print("Saving model-------------------------!")
         torch.save(student.state_dict(),"./models/student/1{}/acc_epoch{}_{}.pkl".format(bits,i,correct))

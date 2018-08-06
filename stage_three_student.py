@@ -75,4 +75,4 @@ for i in torch.arange(0,EPOCH+1):
 
     if i%20==0:
         print("Saving model-------------------------!")
-        torch.save(student.state_dict(),"./models/student/3{}/S_bit{}_epoch{}_{}.pkl".format(bits,bits,i))
+        torch.save(student.state_dict(),"./models/student/3{}/S_bit{}_epoch{}.pkl".format(bits,bits,i))

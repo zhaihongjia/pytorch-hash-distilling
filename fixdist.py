@@ -1,8 +1,3 @@
-'''
- from resnet18 to squeezenet
- distilling
-'''
-
 import torch
 import torchvision
 from torchvision import models,transforms,datasets
@@ -14,67 +9,39 @@ from net.Resnet import Resnet18PlusLatent
 from net.Squeezenet import SqueezenetPlusLatent
 from utils import trainloader,testloader
 
-EPOCH=50000
-LR=0.001
-bits=48
-
+EPOCH=8000
+LR=0.0001
+#-----------change bits to:12 24 36 48---------------------------
+bits=24
+#----------------------------------------------------------------
 #------------------load models---------------------------------
 student=SqueezenetPlusLatent(bits)
-student.load_state_dict(torch.load("./models/fixstudent/acc_epoch3000.0_8368.pkl"))
+student.load_state_dict(torch.load("./models/student/124/acc_epoch1000.0_8158.pkl"))
 student.cuda()
 student.train(True)
-#teacher=Resnet18PlusLatent(bits)
-#teacher.load_state_dict(torch.load("./models/teacher/acc_epoch125.0_9740.pkl"))
-#teacher.cuda()
-#teacher.train(False)
-#loss_mse=nn.MSELoss(size_average=False).cuda()
-#loss_mse=nn.MSELoss().cuda()
+
 loss_ce=nn.CrossEntropyLoss().cuda()
 #loss_l1l=nn.L1Loss().cuda()
 #optimer=optim.Adam(student.parameters(),lr=LR)
 optimer=optim.SGD(student.parameters(),lr=LR,momentum=0.9)
 scheduler=optim.lr_scheduler.StepLR(optimer,step_size=40,gamma=0.1)
 
-#----------------------load teacher data---------------------------
-train_binary1 = torch.load('./thash/train_binary1')
-train_binary2 = torch.load('./thash/train_binary2')
-
 #-----------------for train and test-----------------------------
-best=235
-for i in torch.arange(3001,EPOCH+1):
+for i in torch.arange(1001,EPOCH+1):
     scheduler.step()
 
     train_loss=0.0
     correct=0
     total=0
-    f=0
-    l=0
     for inputs,labels in trainloader:
         inputs,labels=Variable(inputs.cuda()),Variable(labels.cuda())
-        #l=l+labels.size()[0]
         outputs1,_,outputs2,result=student(inputs)
-        #t_out22=train_binary2[f:l]
-        #t_out11=train_binary1[f:l]
-        #f=l
-        #t_out1,_,t_out2,t_result=teacher(inputs)
-        #t_out22=t_out2.detach()
-        #t_out11=t_out1.detach()
-        #-------------------------------------------------------
-        #t_out22=torch.round(torch.clamp(t_out22,min=0))
-        #t_out11=torch.round(torch.clamp(t_out11,min=0))
-        #t_out11=t_out11.type(torch.cuda.LongTensor)[1]
-        #t_out22=t_out22.type(torch.cuda.LongTensor)[1]
         loss=loss_ce(result,labels)
-
-        #--------MSELoss---without distilling---
-        #print('outp',outputs2)
-        #print('tout',t_out22)
-        #print('loss.data',loss.data)
-        #loss=loss_mse(outputs2,t_out22)+loss_mse(outputs1,t_out11)
-        #loss=loss_ce(outputs2,t_out22)+loss_ce(outputs1,t_out11)
 
         optimer.zero_grad()
         loss.backward()
+        #for n,p in student.named_parameters():
+          #  print(n,p.grad)
         optimer.step()
         train_loss+=loss.data
         predict=torch.max(result.data,1)[1]
@@ -93,9 +60,6 @@ for i in torch.arange(3001,EPOCH+1):
         correct+=(t_predict==t_labels).sum()
     print("test:  total:{}  correct:{}".format(total,correct))
 
-    #if i%5==0 or correct>best:
     if i%200==0:
-        best=correct
         print("Saving model-------------------------!")
-        torch.save(student.state_dict(),"./models/fixstudent/acc_epoch{}_{}.pkl".format(i,correct))
-
+        torch.save(student.state_dict(),"./models/student/1{}/acc_epoch{}_{}.pkl".format(bits,i,correct))

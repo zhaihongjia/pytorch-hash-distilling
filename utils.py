@@ -3,7 +3,7 @@ from torchvision import models,transforms,datasets
 import torch
 import os
 
-BATCH=256
+BATCH=128
 #----------------------dataloader-----------------------------
 transform_train = transforms.Compose([
 transforms.RandomCrop(32, padding=4),

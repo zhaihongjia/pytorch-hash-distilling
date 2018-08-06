@@ -17,11 +17,11 @@ bits=12
 #----------------------------------------------------------------
 
 EPOCH=8000
-LR=0.005
+LR=0.01
 
 #------------------load models---------------------------------
 student=SqueezenetPlusLatent(bits)
-#student.load_state_dict(torch.load("./models/student/adam_mse_epoch8000.0_222.pkl"))
+#student.load_state_dict(torch.load("./models/student/212/S_bit12_epoch120.0.pkl"))
 student.cuda()
 student.train(True)
 teacher=Resnet18PlusLatent(bits)
@@ -40,7 +40,7 @@ scheduler=optim.lr_scheduler.StepLR(optimer,step_size=40,gamma=0.1)
 
 
 #-----------------for train and test-----------------------------
-for i in torch.arange(0,EPOCH+1):
+for i in torch.arange(121,EPOCH+1):
     scheduler.step()
 
     train_loss=0.0
@@ -55,6 +55,8 @@ for i in torch.arange(0,EPOCH+1):
 
         optimer.zero_grad()
         loss.backward()
+        for n,p in student.named_parameters():
+            print(n,p.grad)
         optimer.step()
         train_loss+=loss.data
 
@@ -63,4 +65,4 @@ for i in torch.arange(0,EPOCH+1):
 
     if i%20==0:
         print("Saving model-------------------------!")
-        torch.save(student.state_dict(),"./models/student/2{}/S_bit{}_epoch{}_{}.pkl".format(bits,bits,i))
+        torch.save(student.state_dict(),"./models/student/2{}/S_bit{}_epoch{}.pkl".format(bits,bits,i))

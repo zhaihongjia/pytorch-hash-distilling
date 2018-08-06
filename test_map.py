@@ -63,9 +63,9 @@ def precision(trn_binary, trn_label, tst_binary, tst_label):
     print('total query time = ', time.time() - total_time_start)
 
 
-bits=12
+bits=48
 #-------get the model name in the target directory and load model---------------------
-target_root="./models/student/112/"
+target_root="./models/student/148/"
 filename=target_root+"map.txt"
 file1=open(filename,"w",newline="\n")
 models=os.listdir(target_root)
