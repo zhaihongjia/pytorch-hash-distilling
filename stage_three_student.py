@@ -1,5 +1,5 @@
 '''
-stage two: distilling student model according to hash layer
+stage three: distilling student model according to two fc layers
 '''
 import torch
 import torchvision
@@ -49,9 +49,10 @@ for i in torch.arange(0,EPOCH+1):
     for inputs,labels in trainloader:
         inputs,labels=Variable(inputs.cuda()),Variable(labels.cuda())
         l=l+labels.size()[0]
-        _,outputs,_,_=student(inputs)
-        _,t_out,_,_=teacher(inputs)
-        t_out=t_out.detach()
+        outputs1,_,outputs2,result=student(inputs)
+        t_out1,_,t_out2,t_result=teacher(inputs)
+        t_out22=t_out2.detach()
+        t_out11=t_out1.detach()
         #-------------------------------------------------------
         #t_out22=torch.round(torch.clamp(t_out22,min=0))
         #t_out11=torch.round(torch.clamp(t_out11,min=0))
@@ -63,7 +64,7 @@ for i in torch.arange(0,EPOCH+1):
         #print('outp',outputs2)
         #print('tout',t_out22)
         #print('loss.data',loss.data)
-        loss=loss_mse(outputs,t_out)
+        loss=loss_mse(outputs2,t_out22)+loss_mse(outputs1,t_out11)
         #loss=loss_ce(outputs2,t_out22)+loss_ce(outputs1,t_out11)
 
         optimer.zero_grad()
