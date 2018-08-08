@@ -7,15 +7,15 @@ from net.Resnet import Resnet18PlusLatent
 from utils import trainloader,testloader
 
 #-----------change bits to:12 24 36 48---------------------------
-bits=36
+bits=48
 #----------------------------------------------------------------
 MOMENTUM=0.9
-LR=0.01
+LR=0.0001
 EPOCH=80000
 
 #------------------load data-----------------------
 model=Resnet18PlusLatent(bits)
-#model.load_state_dict(torch.load('./models/teacher/T_bit12_epoch31.0_9465.pkl'))
+model.load_state_dict(torch.load('./models/teacher/T_bit48_epoch370.0_9362.pkl'))
 model.cuda()
 loss_function=nn.CrossEntropyLoss().cuda()
 optimer=torch.optim.SGD(model.parameters(),lr=LR, momentum=MOMENTUM, weight_decay=0.0005)
@@ -23,7 +23,7 @@ scheduler = torch.optim.lr_scheduler.MultiStepLR(optimer, milestones=[40], gamma
 
 #------------------train --------------------------
 best=0
-for i in torch.arange(50,EPOCH+1):
+for i in torch.arange(371,EPOCH+1):
     model.train()
     train_loss=0.0
     total=0

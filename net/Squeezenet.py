@@ -25,7 +25,7 @@ class SqueezenetPlusLatent(nn.Module):
         former=self.remain(x)
         former=former.view(former.size(0),256)
         former=self.sigmoid(((former-former.mean(1).unsqueeze(1).expand(former.size()[0],former.size()[1]))/torch.sqrt(former.var(1).unsqueeze(1).expand(former.size()[0],former.size()[1]))))
-        features=self.Linear1(former))
+        features=self.Linear1(former)
         features=self.sigmoid(((features-features.mean(1).unsqueeze(1).expand(features.size()[0],features.size()[1]))/torch.sqrt(features.var(1).unsqueeze(1).expand(features.size()[0],features.size()[1]))))
         latter=self.Linear2(features)
         latter=self.sigmoid(((latter-latter.mean(1).unsqueeze(1).expand(latter.size()[0],latter.size()[1]))/torch.sqrt(latter.var(1).unsqueeze(1).expand(latter.size()[0],latter.size()[1]))))
