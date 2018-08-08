@@ -33,7 +33,7 @@ class Resnet18PlusLatent(nn.Module):
         x=F.relu(x)
         former=self.fc(x)
         features=self.Linear1(F.relu(former))
-        latter=self.Linear2((F.relu(features))
+        latter=self.Linear2(F.relu(features))
         result=self.Linear3(latter)
         return former,features,latter,result
 
