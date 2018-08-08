@@ -24,7 +24,7 @@ class SqueezenetPlusLatent(nn.Module):
     def forward(self,x):
         former=self.remain(x)
         former=former.view(former.size(0),256)
-        features=self.Linear1(F.dropout(F.relu(former),0.5))
-        latter=self.Linear2(F.dropout(F.relu(features),0.5))
+        features=self.Linear1(F.relu(former))
+        latter=self.Linear2(F.relu(features))
         result=self.Linear3(latter)
         return former,features,latter,result
