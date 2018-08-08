@@ -61,8 +61,7 @@ for i in torch.arange(121,EPOCH+1):
         train_loss+=loss.data
 
     print("epoch:{}  loss:{}".format(i,train_loss))
-
-
-    if i%20==0:
+    
+    if i%10==0:
         print("Saving model-------------------------!")
         torch.save(student.state_dict(),"./models/student/2{}/S_bit{}_epoch{}.pkl".format(bits,bits,i))

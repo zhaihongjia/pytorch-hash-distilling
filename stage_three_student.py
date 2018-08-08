@@ -15,13 +15,12 @@ from utils import trainloader,testloader
 #-------------change bits to:12 24 36 48---------------------------
 bits=12
 #----------------------------------------------------------------
-
 EPOCH=8000
 LR=0.01
 
 #------------------load models---------------------------------
 student=SqueezenetPlusLatent(bits)
-#student.load_state_dict(torch.load("./models/student/adam_mse_epoch8000.0_222.pkl"))
+#student.load_state_dict(torch.load("./models/student/3{}/S_bit{}_epoch.pkl".format(bits,bits)))
 student.cuda()
 student.train(True)
 teacher=Resnet18PlusLatent(bits)
@@ -40,7 +39,7 @@ scheduler=optim.lr_scheduler.StepLR(optimer,step_size=40,gamma=0.1)
 
 
 #-----------------for train and test-----------------------------
-for i in torch.arange(0,EPOCH+1):
+for i in torch.arange(1,EPOCH+1):
     scheduler.step()
 
     train_loss=0.0
@@ -73,6 +72,6 @@ for i in torch.arange(0,EPOCH+1):
         train_loss+=loss.data
     print("epoch:{}  loss:{}  total:{}  correct:{}".format(i,train_loss))
 
-    if i%20==0:
+    if i%10==0:
         print("Saving model-------------------------!")
         torch.save(student.state_dict(),"./models/student/3{}/S_bit{}_epoch{}.pkl".format(bits,bits,i))

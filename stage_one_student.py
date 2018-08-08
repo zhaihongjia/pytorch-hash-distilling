@@ -1,3 +1,6 @@
+'''
+stage one:train student net directly 
+'''
 import torch
 import torchvision
 from torchvision import models,transforms,datasets
