@@ -30,14 +30,11 @@ class Resnet18PlusLatent(nn.Module):
         x=self.layer4(self.layer3(self.layer2(self.layer1(self.maxpool(self.relu(self.bn1(self.conv1(x))))))))
         x=self.avgpool(x)
         x=x.view(x.size(0),512)
-        x=self.sigmoid(((x-x.mean(1).unsqueeze(1).expand(x.size()[0],x.size()[1]))/torch.sqrt(x.var(1).unsqueeze(1).expand(x.size()[0],x.size()[1]))))
+        x=F.dropout(F.relu(x),0.5)
         former=self.fc(x)
-        former=self.sigmoid(((former-former.mean(1).unsqueeze(1).expand(former.size()[0],former.size()[1]))/torch.sqrt(former.var(1).unsqueeze(1).expand(former.size()[0],former.size()[1]))))
-        features=self.Linear1(former)
-        features=self.sigmoid(((features-features.mean(1).unsqueeze(1).expand(features.size()[0],features.size()[1]))/torch.sqrt(features.var(1).unsqueeze(1).expand(features.size()[0],features.size()[1]))))
-        latter=self.Linear2(features)
-        latter=self.sigmoid(((latter-latter.mean(1).unsqueeze(1).expand(latter.size()[0],latter.size()[1]))/torch.sqrt(latter.var(1).unsqueeze(1).expand(latter.size()[0],latter.size()[1]))))
-        result=F.softmax(self.Linear3(latter),dim=1)
+        features=self.Linear1(F.dropout(F.relu(former),0.5))
+        latter=self.Linear2(F.dropout(F.relu(features),0.5))
+        result=self.Linear3(latter)
         return former,features,latter,result
 
 
