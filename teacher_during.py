@@ -10,7 +10,7 @@ from torch.autograd import Variable
 
 def binary_output(dataloader):
     net = Resnet18PlusLatent(48)
-    net.load_state_dict(torch.load('./models/teacher/acc_epoch125.0_9740.pkl'))
+    net.load_state_dict(torch.load('./models/teacher/'))
     use_cuda = torch.cuda.is_available()
     if use_cuda:
         net.cuda()
@@ -41,8 +41,3 @@ else:
         os.mkdir('thash')
     torch.save(train_binary1, './thash/train_binary1')
     torch.save(train_binary2, './thash/train_binary2')
-
-
-
-
-

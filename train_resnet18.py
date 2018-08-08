@@ -29,7 +29,7 @@ def TransformData():
 def Train(model, train_loader, val_loader, loss_function, optimizer):
     best=0
     for epoch in torch.arange(1,35000):
-        #-----------for train----------
+        #------------for train----------
         model.train(True)
 
         runing_loss=0.0

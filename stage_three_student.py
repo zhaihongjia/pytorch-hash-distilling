@@ -12,7 +12,7 @@ from net.Resnet import Resnet18PlusLatent
 from net.Squeezenet import SqueezenetPlusLatent
 from utils import trainloader,testloader
 
-#-----------change bits to:12 24 36 48---------------------------
+#-------------change bits to:12 24 36 48---------------------------
 bits=12
 #----------------------------------------------------------------
 

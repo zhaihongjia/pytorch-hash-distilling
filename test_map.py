@@ -36,7 +36,7 @@ def precision(trn_binary, trn_label, tst_binary, tst_label):
     # print("trn_binary size:",trn_binary)
     # print("trn_label size:",trn_label)
 
-    query_times = tst_binary.shape[0]   #testdataset
+    query_times = tst_binary.shape[0]    #testdataset
     trainset_len = train_binary.shape[0]  #traindataset
     AP = np.zeros(query_times)                #查询次数---就是testdataset的数量---对于每一个测试图片进行检索
     Ns = np.arange(1, trainset_len + 1)       #---准确率的分母计算---- 1,2,3,--tranlen

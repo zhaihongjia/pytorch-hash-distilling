@@ -24,3 +24,4 @@ testset = datasets.CIFAR10(root='/home/zhj/distilling/mol/data', train=False, do
                            transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH,
                                          shuffle=False, num_workers=2)
+#----------------------------------------------------------------------------

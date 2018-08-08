@@ -1,7 +1,6 @@
 import torch
 import torchvision
 import torch.nn as nn
-import torch.nn.functional as F
 from torchvision import models
 
 resnet18=models.resnet18()
@@ -30,11 +29,10 @@ class Resnet18PlusLatent(nn.Module):
         x=self.layer4(self.layer3(self.layer2(self.layer1(self.maxpool(self.relu(self.bn1(self.conv1(x))))))))
         x=self.avgpool(x)
         x=x.view(x.size(0),512)
-        x=F.relu(x)
         former=self.fc(x)
-        features=self.Linear1(F.relu(former))
-        latter=self.Linear2(F.relu(features))
-        result=self.Linear3(latter)
+        features=self.sigmoid(self.Linear1(former))
+        latter=self.Linear2(features)
+        result=self.Linear3(self.sigmoid(latter))
         return former,features,latter,result
 
 

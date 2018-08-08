@@ -2,7 +2,6 @@
 import torch
 import torchvision
 import torch.nn as nn
-import torch.nn.functional as F
 from torchvision import models
 
 squeezenet=models.squeezenet1_1(pretrained=True)
@@ -24,7 +23,7 @@ class SqueezenetPlusLatent(nn.Module):
     def forward(self,x):
         former=self.remain(x)
         former=former.view(former.size(0),256)
-        features=self.Linear1(F.relu(former))
-        latter=self.Linear2(F.relu(features))
-        result=self.Linear3(latter)
+        features=self.sigmoid(self.Linear1(former))
+        latter=self.Linear2(features)
+        result=self.Linear3(self.sigmoid(latter))
         return former,features,latter,result

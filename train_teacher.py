@@ -7,14 +7,15 @@ from net.Resnet import Resnet18PlusLatent
 from utils import trainloader,testloader
 
 #-----------change bits to:12 24 36 48---------------------------
-bits=48
+bits=12
 #----------------------------------------------------------------
 MOMENTUM=0.9
-LR=0.001
+LR=0.0001
 EPOCH=80000
 
-#-------------------------------------------------
+#------------------load data-----------------------
 model=Resnet18PlusLatent(bits)
+#model.load_state_dict(torch.load('./models/teacher/T_bit48_epoch370.0_9362.pkl'))
 model.cuda()
 loss_function=nn.CrossEntropyLoss().cuda()
 optimer=torch.optim.SGD(model.parameters(),lr=LR, momentum=MOMENTUM, weight_decay=0.0005)
@@ -38,6 +39,7 @@ for i in torch.arange(1,EPOCH+1):
         predict=torch.max(outputs.data,1)[1]
         total+=labels.size()[0]
         correct+=(predict==labels).sum()
+        #print("loss:",loss)
     print("epoch:{}  loss:{}  total:{}  correct:{}".format(i,train_loss,total,correct))
 
     total=0
@@ -50,7 +52,7 @@ for i in torch.arange(1,EPOCH+1):
         total+=t_labels.size(0)
         correct+=(t_predict==t_labels).sum()
     print("Test: total:{}  correct:{}".format(total,correct))
-    if correct>best or i%5==0:
+    if correct>best or i%10==0:
         best=correct
         print("Saving model-------------------------!")
         torch.save(model.state_dict(),"./models/teacher/T_bit{}_epoch{}_{}.pkl".format(bits,i,correct))

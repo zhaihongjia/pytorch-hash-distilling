@@ -25,7 +25,7 @@ for modelpath in modelspath:
     elif "bit48" in modelpath:
         bits=48
 
-    #-------teacher model-------only teacher need test acc---------
+    #-------teacher model------only teacher need test acc---------
     net=Resnet18PlusLatent(bits)
     net.load_state_dict(torch.load(modelpath))
     net.cuda()
