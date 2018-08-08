@@ -16,7 +16,7 @@ bits=12
 #----------------------------------------------------------------
 #------------------load models---------------------------------
 student=SqueezenetPlusLatent(bits)
-student.load_state_dict(torch.load("./models/student/1{}/acc_epoch20.0_4437.pkl".format(bits)))
+#student.load_state_dict(torch.load("./models/student/1{}/acc_epoch20.0_4437.pkl".format(bits)))
 student.cuda()
 student.train(True)
 
@@ -26,8 +26,9 @@ loss_ce=nn.CrossEntropyLoss().cuda()
 optimer=optim.SGD(student.parameters(),lr=LR,momentum=0.9)
 scheduler=optim.lr_scheduler.StepLR(optimer,step_size=40,gamma=0.1)
 
+best=0
 #-----------------for train and test-----------------------------
-for i in torch.arange(21,EPOCH+1):
+for i in torch.arange(1,EPOCH+1):
     scheduler.step()
     train_loss=0.0
     correct=0
@@ -59,6 +60,7 @@ for i in torch.arange(21,EPOCH+1):
         correct+=(t_predict==t_labels).sum()
     print("test:  total:{}  correct:{}".format(total,correct))
 
-    if i%10==0:
+    if i%10==0 or best<correct:
+        best=correct
         print("Saving model-------------------------!")
         torch.save(student.state_dict(),"./models/student/1{}/acc_epoch{}_{}.pkl".format(bits,i,correct))
