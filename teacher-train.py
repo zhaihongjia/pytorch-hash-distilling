@@ -2,7 +2,7 @@ import torch
 from torch import nn,optim
 from torch.autograd import Variable
 from CIFAR10_AGU import train_loader,val_loader
-from Resnet import ResNetHash
+from model import *
 import argparse
 
 def Train(model, train_loader, val_loader, loss_function, optimizer):
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     for bits in {12,24,36,48}:
         LR=args.lr
-        model=ResNetHash(args.name,bits,10)
+        model=(bits)
         #model.load_state_dict(torch.load('models/resnet18/epoch96_8738_resnet18.pkl'))
         model.cuda()
         criterion = nn.CrossEntropyLoss()
