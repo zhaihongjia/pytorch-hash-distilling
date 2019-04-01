@@ -1,50 +1,58 @@
 import torch
 import torchvision
-import torch.nn as nn
-from torchvision import models
 
-resnet18=models.resnet18()
-resnet18.fc = nn.Linear(in_features = 512, out_features = 10)
-resnet18.load_state_dict(torch.load("./models/resnet18/pre_resnet18.pkl"))
-
-class Resnet18PlusLatent(nn.Module):
-    def __init__(self,bits):
-        super(Resnet18PlusLatent,self).__init__()
-        self.conv1=resnet18.conv1
-        self.bn1=resnet18.bn1
-        self.relu=resnet18.relu
-        self.maxpool=resnet18.maxpool
-        self.layer1=nn.Sequential(*list(resnet18.layer1.children()))
-        self.layer2=nn.Sequential(*list(resnet18.layer2.children()))
-        self.layer3=nn.Sequential(*list(resnet18.layer3.children()))
-        self.layer4=nn.Sequential(*list(resnet18.layer4.children()))
-        self.avgpool=nn.AvgPool2d(kernel_size=1, stride=1, padding=0)
-        self.fc=nn.Linear(in_features=512, out_features=256, bias=True)
+class ResNetHash(torch.nn.Module):
+    def __init__(self,name,bits,classnum):
+        super(ResNetHash,self).__init__()
+        self.name=name
         self.bits=bits
-        self.Linear1=nn.Linear(256, self.bits)
-        self.sigmoid = nn.Sigmoid()
-        self.Linear2=nn.Linear(self.bits, 256)
-        self.Linear3=nn.Linear(256,10)
+        self.classnum=classnum
+        if self.name=="resnet18":
+            self.model=torchvision.model.resnet18(True)
+            print("======>> Load resnet18!")
+        elif self.name=="resnet34":
+            self.model=torchvision.model.resnet34(True)
+            print("======>> Load resnet34!")
+        elif self.name=="resnet50":
+            self.model=torchvision.model.resnet50(True)
+            print("======>> Load resnet50!")
+        elif self.name=="resnet101":
+            self.model=torchvision.model.resnet101(True)
+            print("======>> Load resnet101!")
+        elif self.name=="resnet152":
+            self.model=torchvision.model.resnet152(True)
+            print("======>> Load resnet152!")
+        self.model.fc=torch.nn.Linear(512,self.bits)
+        self.remain=nn.Sequential(*list(self.model.children()))
+        self.cla=torch.nn.Linear(self.bits,self.classnum)
+        self.sigmoid =torch.nn.Sigmoid()
+
+
     def forward(self,x):
-        x=self.layer4(self.layer3(self.layer2(self.layer1(self.maxpool(self.relu(self.bn1(self.conv1(x))))))))
-        x=self.avgpool(x)
-        x=x.view(x.size(0),512)
-        former=self.fc(x)
-        features=self.sigmoid(self.Linear1(former))
-        latter=self.Linear2(features)
-        result=self.Linear3(self.sigmoid(latter))
-        return former,features,latter,result
+        x=self.remain(x)
+        x=x.view(x.size()[0],512)
+        features=self.fc(x)
+        x=self.cla(self.sigmoid(features))
+        return features,x
 
 
-# class Resnet50PlusLatent(nn.Module):
-#     def __init__(self,bits):
-#         super(Resnet50PlusLatent,self).__init__()
-#         self.bits=bits
-#         self.Linear1=nn.Linear(10, self.bits)
-#         self.sigmoid = nn.Sigmoid()
-#         self.Linear2=nn.Linear(self.bits, 10)
-#     def forward(self,x):
-#         former=resnet50(x)
-#         features=self.sigmoid(self.Linear1(former))
-#         result=self.Linear2(features)
-#         return former,features,result
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
