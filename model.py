@@ -1,114 +1,76 @@
+'''
+This file defines the model we used in our experiments for NUS-WIDE dataset
+'''
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.nn.init as init
-
+from collections import OrderedDict
 from torch.autograd import Variable
+from torch.nn import init
+import numpy as np
+from mloss import *
 
-__all__ = ['ResNet', 'resnet20', 'resnet32', 'resnet44', 'resnet56', 'resnet110', 'resnet1202']
+class DSH(nn.Module):
+    def __init__(self,bits,mode=1):
+        super(DSH,self).__init__()
+        self.bits=bits
+        self.mode=mode
 
-def _weights_init(m):
-    classname = m.__class__.__name__
-    print(classname)
-    if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
-        init.kaiming_normal(m.weight)
+        # the input shape if linear1 is calculated manually
+        # shape after conv layer or pooling layer  = (input_width+2*pad-pool_size)/stride+1
+        self.features = nn.Sequential(OrderedDict([
+            # first conv layer
+            ('conv1', nn.Conv2d(3, 32, kernel_size=5, stride=1, padding=2, bias=True)),
+            ('batchnorm1', nn.BatchNorm2d(32)),
+            ('pool1', nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True)),
+            ('relu1', nn.ReLU(inplace=True)),
 
-class LambdaLayer(nn.Module):
-    def __init__(self, lambd):
-        super(LambdaLayer, self).__init__()
-        self.lambd = lambd
+            # second conv layer
+            ('conv2', nn.Conv2d(32, 32, kernel_size=5, stride=1, padding=2, bias=True)),
+            ('batchnorm2', nn.BatchNorm2d(32)),
+            ('pool2', nn.AvgPool2d(kernel_size=3, stride=2, ceil_mode=True)),
+            ('relu2', nn.ReLU(inplace=True)),
 
-    def forward(self, x):
-        return self.lambd(x)
+            # third conv layer
+            ('conv3', nn.Conv2d(32, 64, kernel_size=5, stride=1, padding=2, bias=True)),
+            ('batchnorm3', nn.BatchNorm2d(64)),
+            ('relu3', nn.ReLU(inplace=True)),
+            ('pool3', nn.AvgPool2d(kernel_size=3, stride=2, ceil_mode=True))
+        ]))
 
+        # two fully connected layer
+        self.linear = nn.Sequential(OrderedDict([
+            ('linear1', nn.Linear(1024, 500)), #1024 for 32x32 4096
+            ('relu', nn.ReLU(inplace=True)),
+            ('linear2', nn.Linear(500, self.bits)),
+            ('drop', nn.Dropout(0.1)),
+        ]))
 
-class BasicBlock(nn.Module):
-    expansion = 1
+        # mode=1  softmax
+        # mode=2  Ang_Margin
+        # mode=3  Add_margin
+        # mode=4  Arc_margin
+        # mode=5  Norm
+        # mode=6  Hash_margin
+        if self.mode==1:
+            self.classification_layer=nn.Linear(self.bits,10)
+        elif self.mode==2:
+            self.classification_layer=Ang_Margin(self.bits,10)
+        elif self.mode==3:
+            self.classification_layer=Add_Margin(self.bits,10)
+        elif self.mode==4:
+            self.classification_layer=Arc_Margin(self.bits,10)
+        elif self.mode==5:
+            self.classification_layer=Norm(self.bits,10)
+        else:
+            self.classification_layer=Hash_Margin(self.bits,10)
 
-    def __init__(self, in_planes, planes, stride=1, option='A'):
-        super(BasicBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(planes)
-
-        self.shortcut = nn.Sequential()
-        if stride != 1 or in_planes != planes:
-            if option == 'A':
-                """
-                For CIFAR10 ResNet paper uses option A.
-                """
-                self.shortcut = LambdaLayer(lambda x:
-                                            F.pad(x[:, :, ::2, ::2], (0, 0, 0, 0, planes//4, planes//4), "constant", 0))
-            elif option == 'B':
-                self.shortcut = nn.Sequential(
-                     nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
-                     nn.BatchNorm2d(self.expansion * planes)
-                )
-
-    def forward(self, x):
-        out = F.relu(self.bn1(self.conv1(x)))
-        out = self.bn2(self.conv2(out))
-        out += self.shortcut(x)
-        out = F.relu(out)
-        return out
-
-
-class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, bits,num_classes=10):
-        super(ResNet, self).__init__()
-        self.in_planes = 16
-
-        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(16)
-        self.layer1 = self._make_layer(block, 16, num_blocks[0], stride=1)
-        self.layer2 = self._make_layer(block, 32, num_blocks[1], stride=2)
-        self.layer3 = self._make_layer(block, 64, num_blocks[2], stride=2)
-        self.linear1 = nn.Linear(64, bits)
-        self.linear2 = nn.Linear(bits, num_classes)
-        self.sigmoid= nn.Sigmoid()
-        self.apply(_weights_init)
-
-    def _make_layer(self, block, planes, num_blocks, stride):
-        strides = [stride] + [1]*(num_blocks-1)
-        layers = []
-        for stride in strides:
-            layers.append(block(self.in_planes, planes, stride))
-            self.in_planes = planes * block.expansion
-
-        return nn.Sequential(*layers)
-
-    def forward(self, x):
-        out = F.relu(self.bn1(self.conv1(x)))
-        out = self.layer1(out)
-        out = self.layer2(out)
-        out = self.layer3(out)
-        out = F.avg_pool2d(out, out.size()[3])
-        out = out.view(out.size(0), -1)
-        features = self.linear1(out)
-        out= self.linear2(self.sigmoid(features))
+    def forward(self, x,label):
+        features = self.features(x)
+        features = self.linear(features.view(x.size(0), -1))
+        if self.mode==1:
+            out=self.classification_layer(features)
+        else:
+            out=self.classification_layer(features,label)
         return features,out
-
-
-def resnet20(bits):
-    return ResNet(BasicBlock, [3, 3, 3] ,bits)
-
-
-def resnet32(bits):
-    return ResNet(BasicBlock, [5, 5, 5],bits)
-
-
-def resnet44(bits):
-    return ResNet(BasicBlock, [7, 7, 7],bits)
-
-
-def resnet56(bits):
-    return ResNet(BasicBlock, [9, 9, 9],bits)
-
-
-def resnet110(bits):
-    return ResNet(BasicBlock, [18, 18, 18],bits)
-
-
-def resnet1202(bits):
-    return ResNet(BasicBlock, [200, 200, 200],bits)
