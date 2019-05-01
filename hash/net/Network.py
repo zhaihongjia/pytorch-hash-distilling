@@ -23,7 +23,7 @@ class AlexNet(nn.Module):
     self.hash_layer = nn.Linear(model_alexnet.classifier[6].in_features, self.bits)
     self.hash_layer.weight.data.normal_(0, 0.01)
     self.hash_layer.bias.data.fill_(0.0)
-    self.relu=nn.ReLU(True)
+    self.relu=nn.Sigmoid()
     self.margin=AA_Margin(self.bits,self.class_num,self.m)
 
   def forward(self, x):
@@ -32,6 +32,7 @@ class AlexNet(nn.Module):
     x = self.classifier(x)
     features = self.hash_layer(x)
     out=self.margin(self.relu(features))
+    #print(features)
     return features,out
 
 
@@ -72,10 +73,10 @@ class DSH(nn.Module):
 
         self.margin=AA_Margin(self.bits,self.class_num,self.m)
 
-    def forward(self,x,label):
+    def forward(self,x):
         features=self.features(x)
         features=self.linear(features)
-        out=self.margin(features,label)
+        out=self.margin(features)
         return features,out
 
 

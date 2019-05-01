@@ -22,14 +22,14 @@ def train(i):
             inputs, targets = Variable(inputs.cuda()), Variable(targets.cuda())
         else:
             inputs, targets = Variable(inputs), Variable(targets)
-        features,outputs = model(inputs, targets)
+        features,outputs = model(inputs)
         loss = criterion(features,outputs, targets)
         loss.backward()
         optimizer.step()
 
         train_loss += loss.data
-    print("bit:{}  epoch:{}  loss:{}  lr:{}\n".format(len,i,train_loss,LR))
-    defile.write("bit:{}  epoch:{}  loss:{}  lr:{}\n".format(len,i,train_loss,LR))
+    print("bit:{}  epoch:{}  loss:{}  lr:{}".format(bits,i,train_loss,LR))
+    defile.write("bit:{}  epoch:{}  loss:{}  lr:{}\n".format(bits,i,train_loss,LR))
     defile.flush()
 
 
@@ -64,7 +64,7 @@ if __name__=='__main__':
     parser.add_argument('--regularization',default=0,type=int)
     # according to the dataset
     parser.add_argument('--class_num',default=21,type=int)
-    parser.add_argument('--dataset',default=nus,type=str)
+    parser.add_argument('--dataset',default='nus',type=str)
     args=parser.parse_args()
 
     torch.cuda.set_device(0)
@@ -74,7 +74,7 @@ if __name__=='__main__':
     torch.cuda.manual_seed_all(args.seed)
 
     # dataset
-    trainloader=load_data(args.dataset,'jpg',args.batchsize)
+    trainloader=load_data('./data/nuswide_81/train.txt',args.dataset,args.batch)
 
     # choose the change epoches
     if args.change_mode==1:

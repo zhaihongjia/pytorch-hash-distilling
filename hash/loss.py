@@ -25,7 +25,7 @@ class AA_Margin(nn.Module):
             lambda x: 16*x**5-20*x**3+5*x
         ]
 
-    def forward(self, input, label):
+    def forward(self, input):
         x = input   # size=(B,F)    F is feature length   bachsize x feature length
         w = self.weight # size=(F,Classnum)
 
