@@ -24,18 +24,16 @@ class DataSet(data.Dataset):
         img=Image.open(img_path)
         if self.transform:
             img=self.transform(img)
-            if img.size()[0]==1:
-                print('====>',img_path)
         return img,torch.from_numpy(img_label)
 
     def __len__(self):
         return len(self.pathes)
 
-def load_data(root,name,batchsize):
-    if "train.txt" in root:
+def load_data(mode,name,batchsize):
+    if mode=='train':
         trans=torchvision.transforms.Compose([
         torchvision.transforms.Resize((256,256)),
-        torchvision.transforms.RandomCrop(224),
+        torchvision.transforms.RandomCrop((224,224)),
         torchvision.transforms.ToTensor(),
         ])
     else:
@@ -44,9 +42,7 @@ def load_data(root,name,batchsize):
         torchvision.transforms.ToTensor(),
         ])
     if name=='coco':
-        trans=torchvision.transforms.Compose([
-        trans,torchvision.transforms.Normalize((0.4529,0.4254,0.3873),(0.2901,0.2769,0.2931)),])
-        dataset=DataSet(root,"jpg",trans)
+        dataset=DataSet("./data/coco/"+mode+'.txt',"jpg",trans)
         dataloader=data.DataLoader(dataset,batch_size=batchsize,shuffle=True,num_workers=4)
         return dataloader
     elif name=='imagenet':
@@ -54,8 +50,6 @@ def load_data(root,name,batchsize):
         dataloader=data.DataLoader(dataset,batch_size=batchsize,shuffle=True,num_workers=4)
         return dataloader
     elif name=='nus':
-        trans=torchvision.transforms.Compose([
-        trans,torchvision.transforms.Normalize((0.4529,0.4254,0.3873),(0.2901,0.2769,0.2931)),])
         dataset=DataSet(root,"jpg",trans)
         dataloader=data.DataLoader(dataset,batch_size=batchsize,shuffle=True,num_workers=4)
         return dataloader
