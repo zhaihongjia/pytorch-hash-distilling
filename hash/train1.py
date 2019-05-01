@@ -41,10 +41,14 @@ def train():
     for i in range(iterations):
         # save parameters in iter
         if (i+1)%2500==0:
-            torch.save(model.state_dict(),"iter_{}".format(i+1))
+            path=args.savepath+'{}/'.format(args.bits)
+            if not os.path.exists(path):
+                os.mkdir(path)
+            torch.save(model.cpu.state_dict(),path+"iter_{}".format(i+1))
 
         # train one iter
         model.train(True)
+        schedule_param={"init_lr":args.lr, "gamma":0.5, "step":2000}
         optimizer = lr_schedule.step_lr_scheduler(param_lr, optimizer, i, **schedule_param)
         optimizer.zero_grad()
         if i%len_train==0:
@@ -62,7 +66,7 @@ def train():
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description='DHH')
-    parser.add_argument('--lr',default=0.01,type=float,help='learning rate')
+    parser.add_argument('--lr',default=0.0001,type=float,help='learning rate')
     parser.add_argument('--batch',default=128,type=int)
     # debug information
     parser.add_argument('--savepath',default='./models/',help='the saving path for trained models')
