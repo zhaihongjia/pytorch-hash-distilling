@@ -15,22 +15,24 @@ import lr_schedule
 
 def train():
     # training data length
-    len_train=len(load_data('train',args.dataset,args.batchsize))-1
+    len_train=len(load_data('train',args.dataset,args.batch))-1
 
     # load network
     model=AlexNet(args.bits,args.class_num,args.m)
+    model.cuda()
 
     # loss function
     criterion=Multi_Loss(class_num=args.class_num,smooth=args.smooth,\
     eps=args.eps,regularization=args.regularization,lam=args.lam)
+    criterion.cuda()
 
     # collect parameters
     parameter_list = [{"params":model.features.parameters(), "lr":1}, \
-                      {"params":model.hash_layer.parameters(), "lr":10} \
+                      {"params":model.hash_layer.parameters(), "lr":10}, \
                       {"params":model.margin.parameters(), "lr":10}]
 
     # set optimizer
-    optimizer=torch.optim.SGD(model.parameters(),lr=LR,momentum=0.9, \
+    optimizer=torch.optim.SGD(model.parameters(),lr=1.0,momentum=0.9, \
     weight_decay=0.0005,nesterov=True)
     param_lr = []
     for param_group in optimizer.param_groups:
@@ -38,7 +40,7 @@ def train():
 
 
     # train
-    for i in range(iterations):
+    for i in range(args.iterations):
         # save parameters in iter
         if (i+1)%2500==0:
             path=args.savepath+'{}/'.format(args.bits)
@@ -52,7 +54,7 @@ def train():
         optimizer = lr_schedule.step_lr_scheduler(param_lr, optimizer, i, **schedule_param)
         optimizer.zero_grad()
         if i%len_train==0:
-            trainloader=iter(load_data('train',args.dataset,args.batchsize))
+            trainloader=iter(load_data('train',args.dataset,args.batch))
         inputs,targets=trainloader.next()
         inputs, targets = Variable(inputs.cuda()), Variable(targets.cuda())
         features,outputs = model(inputs)
@@ -72,6 +74,7 @@ if __name__=='__main__':
     parser.add_argument('--savepath',default='./models/',help='the saving path for trained models')
     parser.add_argument('--logfile',default='debug.txt',type=str)
     parser.add_argument('--bits',default=16,type=int)
+    parser.add_argument('--iterations',default=10000,type=int)
     # label smoothing regularization
     parser.add_argument('--eps',default=0.0,type=float)
     parser.add_argument('--smooth',default=0,type=int)
@@ -82,7 +85,7 @@ if __name__=='__main__':
     parser.add_argument('--regularization',default=0,type=int)
     # according to the dataset
     parser.add_argument('--class_num',default=21,type=int)
-    parser.add_argument('--dataset',default=nus,type=str)
+    parser.add_argument('--dataset',default='nus',type=str)
     args=parser.parse_args()
 
     # random seed
