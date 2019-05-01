@@ -14,8 +14,8 @@ from net.Network import *
 import lr_schedule
 
 def train():
-    # load training data
-    trainloader=load_data('',args.dataset,args.batchsize)
+    # training data length
+    len_train=len(load_data('train',args.dataset,args.batchsize))-1
 
     # load network
     model=AlexNet(args.bits,args.class_num,args.m)
@@ -25,11 +25,12 @@ def train():
     eps=args.eps,regularization=args.regularization,lam=args.lam)
 
     # collect parameters
-    parameter_list = [{"params":base_network.feature_layers.parameters(), "lr":1}, \
-                      {"params":base_network.hash_layer.parameters(), "lr":10}]
+    parameter_list = [{"params":model.features.parameters(), "lr":1}, \
+                      {"params":model.hash_layer.parameters(), "lr":10} \
+                      {"params":model.margin.parameters(), "lr":10}]
 
     # set optimizer
-    optimizer=torch.torch.optim.SGD(model.parameters(),lr=LR,momentum=0.9, \
+    optimizer=torch.optim.SGD(model.parameters(),lr=LR,momentum=0.9, \
     weight_decay=0.0005,nesterov=True)
     param_lr = []
     for param_group in optimizer.param_groups:
@@ -37,56 +38,27 @@ def train():
 
 
     # train
-    len_train=len()
     for i in range(iterations):
         # save parameters in iter
-        if i% config[iterations]==0:
-            torch.save(model.state_dict(),"iter_{}".format(i))
+        if (i+1)%2500==0:
+            torch.save(model.state_dict(),"iter_{}".format(i+1))
 
         # train one iter
         model.train(True)
         optimizer = lr_schedule.step_lr_scheduler(param_lr, optimizer, i, **schedule_param)
         optimizer.zero_grad()
         if i%len_train==0:
-            trainloader=iter()
+            trainloader=iter(load_data('train',args.dataset,args.batchsize))
         inputs,targets=trainloader.next()
-        if use_cuda:
-            inputs, targets = Variable(inputs.cuda()), Variable(targets.cuda())
-        features,outputs = model(inputs, targets)
-        loss = criterion(features,outputs, targets)
+        inputs, targets = Variable(inputs.cuda()), Variable(targets.cuda())
+        features,outputs = model(inputs)
+        loss = criterion(features,outputs,targets)
         loss.backward()
         optimizer.step()
 
-
-
-
-
-    model.train()
-    train_loss=0.0
-    for inputs,targets in trainloader:
-        optimizer.zero_grad()
-        if use_cuda:
-            inputs, targets = Variable(inputs.cuda()), Variable(targets.cuda())
-        else:
-            inputs, targets = Variable(inputs), Variable(targets)
-        features,outputs = model(inputs, targets)
-        loss = criterion(features,outputs, targets)
-        loss.backward()
-        optimizer.step()
-
-        train_loss += loss.data
-    print("bit:{}  epoch:{}  loss:{}  lr:{}\n".format(len,i,train_loss,LR))
-    defile.write("bit:{}  epoch:{}  loss:{}  lr:{}\n".format(len,i,train_loss,LR))
-    defile.flush()
-
-
-    if i%10==0:
-        mkdir_if_missing(args.savepath+'{}/'.format(bits))
-        filename=args.savepath+'{}/'.format(bits)+'epoch{}.pkl'.format(i)
-        state = model.state_dict()
-        for key in state: state[key] = state[key].clone().cpu()
-        torch.save(state, filename)
-        print("----------->save model in {}\n".format(filename))
+        print("Iter:{:05d}  loss:{:.5f}".format(i+1,loss.float().data))
+        defile.write("Iter:{:05d}  loss:{:.5f}".format(i+1,loss.float().data))
+        defile.flush()
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description='DHH')

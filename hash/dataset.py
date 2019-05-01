@@ -46,10 +46,10 @@ def load_data(mode,name,batchsize):
         dataloader=data.DataLoader(dataset,batch_size=batchsize,shuffle=True,num_workers=4)
         return dataloader
     elif name=='imagenet':
-        dataset=DataSet(root,"JPEG",trans)
+        dataset=DataSet("./data/imagenet/"+mode+'.txt',"JPEG",trans)
         dataloader=data.DataLoader(dataset,batch_size=batchsize,shuffle=True,num_workers=4)
         return dataloader
     elif name=='nus':
-        dataset=DataSet(root,"jpg",trans)
+        dataset=DataSet("./data/nuswide_81/"+mode+'.txt',"jpg",trans)
         dataloader=data.DataLoader(dataset,batch_size=batchsize,shuffle=True,num_workers=4)
         return dataloader
